@@ -366,6 +366,9 @@ services:
         target: /etc/mender/mender.conf
     volumes:
       - ./compose/certs/mender.crt:/var/lib/mender/mender.crt
+    # extra_hosts:
+    #   - "192.168.0.100:192.168.0.100"
+    # network_mode: host  # Add this line
 
 configs:
   client_json:
