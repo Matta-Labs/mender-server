@@ -13,9 +13,7 @@ services:
       - workflows
     environment:
       CREATE_ARTIFACT_SKIPVERIFY: "true"
-      WORKFLOWS_MONGO_URL: ${MONGO_SERVER}
-      WORKFLOWS_MONGO_USERNAME: ${MONGO_USER}
-      WORKFLOWS_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      WORKFLOWS_MONGO_URL: "mongodb://mongo"
       WORKFLOWS_NATS_URI: "nats://nats"
 
   deployments:
@@ -26,6 +24,8 @@ services:
     restart: on-failure:3
     command: [server, --automigrate]
     depends_on:
+      mongo:
+        condition: service_started
       s3:
         condition: service_healthy
     environment:
@@ -33,9 +33,7 @@ services:
       DEPLOYMENTS_PRESIGN_SECRET: "aW5zZWN1cmUgc2VjcmV0"
       DEPLOYMENTS_INVENTORY_ADDR: http://inventory:8080
       DEPLOYMENTS_MENDER_WORKFLOWS: http://workflows:8080
-      DEPLOYMENTS_MONGO_URL: ${MONGO_SERVER}
-      DEPLOYMENTS_MONGO_USERNAME: ${MONGO_USER}
-      DEPLOYMENTS_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      DEPLOYMENTS_MONGO_URL: "mongodb://mongo"
       DEPLOYMENTS_STORAGE_BUCKET: "mender"
       DEPLOYMENTS_AWS_URI: "http://s3:8080"
       DEPLOYMENTS_AWS_EXTERNAL_URI: "https://s3.docker.mender.io"
@@ -67,12 +65,12 @@ services:
     image: ${MENDER_IMAGE_REGISTRY:-docker.io}/${MENDER_IMAGE_REPOSITORY:-mendersoftware}/deviceauth:${MENDER_IMAGE_TAG:-latest}
     restart: on-failure:3
     command: [server, --automigrate]
+    depends_on:
+      - mongo
     environment:
       DEVICEAUTH_INVENTORY_ADDR: http://inventory:8080
       DEVICEAUTH_ORCHESTRATOR_ADDR: http://workflows:8080
-      DEVICEAUTH_MONGO: ${MONGO_SERVER}
-      DEVICEAUTH_MONGO_USERNAME: ${MONGO_USER}
-      DEVICEAUTH_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      DEVICEAUTH_MONGO: "mongodb://mongo"
       DEVICEAUTH_SERVER_PRIV_KEY_PATH: "/etc/deviceauth/private.pem"
     volumes:
       - ./compose/config/mender.pem:/etc/deviceauth/private.pem
@@ -102,9 +100,9 @@ services:
     environment:
       DEVICECONFIG_INVENTORY_URI: http://inventory:8080
       DEVICECONFIG_WORKFLOWS_URL: http://workflows:8080
-      DEVICECONFIG_MONGO_URL: ${MONGO_SERVER}
-      DEVICECONFIG_MONGO_USERNAME: ${MONGO_USER}
-      DEVICECONFIG_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      DEVICECONFIG_MONGO_URL: "mongodb://mongo"
+    depends_on:
+      - mongo
     labels:
       traefik.enable: "true"
       traefik.http.services.deviceconfig.loadBalancer.server.port: "8080"
@@ -128,14 +126,13 @@ services:
     restart: on-failure:3
     command: [server, --automigrate]
     depends_on:
+      - mongo
       - nats
     environment:
       DEVICECONNECT_INVENTORY_URI: http://inventory:8080
       DEVICECONNECT_WORKFLOWS_URL: http://workflows:8080
-      DEVICECONNECT_MONGO_URL: ${MONGO_SERVER}
-      DEVICECONNECT_MONGO_USERNAME: ${MONGO_USER}
-      DEVICECONNECT_MONGO_PASSWORD: ${MONGO_PASSWORD}
-      DEVICECONNECT_NATS_URL: ${MONGO_SERVER}
+      DEVICECONNECT_MONGO_URL: "mongodb://mongo"
+      DEVICECONNECT_NATS_URL: "mongodb://mongo"
     labels:
       traefik.enable: "true"
       traefik.http.services.deviceconnect.loadBalancer.server.port: "8080"
@@ -184,12 +181,12 @@ services:
     image: ${MENDER_IMAGE_REGISTRY:-docker.io}/${MENDER_IMAGE_REPOSITORY:-mendersoftware}/inventory:${MENDER_IMAGE_TAG:-latest}
     restart: on-failure:3
     command: [server, --automigrate]
+    depends_on:
+      - mongo
     environment:
       INVENTORY_DEVICEMONITOR_ADDR: http://devicemonitor:8080
       INVENTORY_ORCHESTRATOR_ADDR: http://workflows:8080
-      INVENTORY_MONGO: ${MONGO_SERVER}
-      INVENTORY_MONGO_USERNAME: ${MONGO_USER}
-      INVENTORY_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      INVENTORY_MONGO: mongodb://mongo
       INVENTORY_NATS_URI: "nats://nats"
     labels:
       traefik.enable: "true"
@@ -224,12 +221,12 @@ services:
     image: ${MENDER_IMAGE_REGISTRY:-docker.io}/${MENDER_IMAGE_REPOSITORY:-mendersoftware}/iot-manager:${MENDER_IMAGE_TAG:-latest}
     restart: on-failure:3
     command: [server, --automigrate]
+    depends_on:
+      - mongo
     environment:
       IOT_MANAGER_DEVICEAUTH_URL: "http://deviceauth:8080"
       IOT_MANAGER_WORKFLOWS_URL: "http://workflows:8080"
-      IOT_MANAGER_MONGO_URL: ${MONGO_SERVER}
-      IOT_MANAGER_MONGO_USERNAME: ${MONGO_USER}
-      IOT_MANAGER_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      IOT_MANAGER_MONGO_URL: "mongodb://mongo"
       IOT_MANAGER_NATS_URI: "nats://nats"
     labels:
       traefik.enable: "true"
@@ -249,10 +246,10 @@ services:
     image: ${MENDER_IMAGE_REGISTRY:-docker.io}/${MENDER_IMAGE_REPOSITORY:-mendersoftware}/useradm:${MENDER_IMAGE_TAG:-latest}
     restart: on-failure:3
     command: [server, --automigrate]
+    depends_on:
+      - mongo
     environment:
-      USERADM_MONGO: ${MONGO_SERVER_ADMIN}
-      USERADM_MONGO_USERNAME: ${MONGO_USER}
-      USERADM_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      USERADM_MONGO: "mongodb://mongo"
       USERADM_SERVER_PRIV_KEY_PATH: "/etc/useradm/private.pem"
     labels:
       traefik.enable: "true"
@@ -283,9 +280,7 @@ services:
     depends_on:
       - workflows
     environment:
-      WORKFLOWS_MONGO_URL: ${MONGO_SERVER}
-      WORKFLOWS_MONGO_USERNAME: ${MONGO_USER}
-      WORKFLOWS_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      WORKFLOWS_MONGO_URL: "mongodb://mongo"
       WORKFLOWS_NATS_URI: "nats://nats"
       DEPLOYMENTS_ADDR: deployments:8080
       DEVICEAUTH_ADDR: deviceauth:8080
@@ -306,11 +301,10 @@ services:
     restart: on-failure:3
     command: [server, --automigrate]
     depends_on:
+      - mongo
       - nats
     environment:
-      WORKFLOWS_MONGO_URL: ${MONGO_SERVER}
-      WORKFLOWS_MONGO_USERNAME: ${MONGO_USER}
-      WORKFLOWS_MONGO_PASSWORD: ${MONGO_PASSWORD}
+      WORKFLOWS_MONGO_URL: "mongodb://mongo"
       WORKFLOWS_NATS_URI: "nats://nats"
     networks:
       default:
@@ -348,6 +342,14 @@ services:
           - s3.mender.local
           - docker.mender.io
           - s3.docker.mender.io
+
+  # mongo:
+  #   image: mongo:6.0
+  #   volumes:
+  #     - mongo:/data/db
+  #   networks:
+  #     default:
+  #       aliases: [mender-mongo]
 
   nats:
     image: nats:2.10
