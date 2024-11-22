@@ -25,9 +25,6 @@ services:
     image: ${MENDER_IMAGE_REGISTRY:-docker.io}/${MENDER_IMAGE_REPOSITORY:-mendersoftware}/deployments:${MENDER_IMAGE_TAG:-latest}
     restart: on-failure:3
     command: [server, --automigrate]
-    depends_on:
-      s3:
-        condition: service_healthy
     environment:
       DEPLOYMENTS_PRESIGN_URL_HOSTNAME: "docker.mender.io"
       DEPLOYMENTS_PRESIGN_SECRET: "aW5zZWN1cmUgc2VjcmV0"
@@ -36,11 +33,11 @@ services:
       DEPLOYMENTS_MONGO_URL: ${MONGO_SERVER}
       DEPLOYMENTS_MONGO_USERNAME: ${MONGO_USER}
       DEPLOYMENTS_MONGO_PASSWORD: ${MONGO_PASSWORD}
-      DEPLOYMENTS_STORAGE_BUCKET: "mender"
-      DEPLOYMENTS_AWS_URI: "http://s3:8080"
-      DEPLOYMENTS_AWS_EXTERNAL_URI: "https://s3.docker.mender.io"
-      DEPLOYMENTS_AWS_AUTH_KEY: "${MENDER_ACCESS_KEY_ID:-mender}"
-      DEPLOYMENTS_AWS_AUTH_SECRET: "${MENDER_SECRET_ACCESS_KEY:-thisisnotsecure}"
+      DEPLOYMENTS_STORAGE_BUCKET: ${S3_SPACE_BUCKET}
+      DEPLOYMENTS_AWS_URI: ${S3_SERVER}
+      DEPLOYMENTS_AWS_EXTERNAL_URI: ${S3_SERVER}
+      DEPLOYMENTS_AWS_AUTH_KEY: "${S3_ACCESS_ID}"
+      DEPLOYMENTS_AWS_AUTH_SECRET: "${S3_SECRET_KEY}"
     labels:
       traefik.enable: "true"
       traefik.http.services.deployments.loadBalancer.server.port: "8080"

@@ -33,9 +33,6 @@ services:
       - -electionTimeout=1s
       - -heartbeatInterval=200ms
       - -raftHashicorp=true
-    volumes:
-      - s3:/data
-
   s3-volume:
     image: chrislusf/seaweedfs
     command:
@@ -47,8 +44,6 @@ services:
       - -preStopSeconds=0
     depends_on:
       - s3-master
-    volumes:
-      - s3:/data
 
   s3-filer:
     image: chrislusf/seaweedfs
@@ -59,40 +54,40 @@ services:
     depends_on:
       - s3-master
       - s3-volume
-    volumes:
-      - s3:/data
+    # volumes:
+    #   - s3:/data
 
-  s3:
-    image: chrislusf/seaweedfs
-    command:
-      - s3
-      - -port=8080
-      - -filer=s3-filer:8888
-      - -ip.bind=0.0.0.0
-      - -config=/etc/seaweedfs/s3.conf
-    depends_on:
-      - s3-master
-      - s3-volume
-      - s3-filer
-    configs:
-      - source: s3-conf
-        target: /etc/seaweedfs/s3.conf
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.s3.priority: "99999"
-      traefik.http.routers.s3.rule: PathPrefix(`/mender`)
-      traefik.http.services.s3.loadBalancer.server.port: "8080"
-    healthcheck:
-      test:
-        - CMD
-        - /usr/bin/nc
-        - -z
-        - 127.0.0.1
-        - "8080"
-      interval: 5s
-      retries: 10
-    volumes:
-      - s3:/data
+  # s3:
+  #   image: chrislusf/seaweedfs
+  #   command:
+  #     - s3
+  #     - -port=8080
+  #     - -filer=s3-filer:8888
+  #     - -ip.bind=0.0.0.0
+  #     - -config=/etc/seaweedfs/s3.conf
+  #   depends_on:
+  #     - s3-master
+  #     - s3-volume
+  #     - s3-filer
+  #   configs:
+  #     - source: s3-conf
+  #       target: /etc/seaweedfs/s3.conf
+  #   labels:
+  #     traefik.enable: "true"
+  #     traefik.http.routers.s3.priority: "99999"
+  #     traefik.http.routers.s3.rule: PathPrefix(`/mender`)
+  #     traefik.http.services.s3.loadBalancer.server.port: "8080"
+  #   healthcheck:
+  #     test:
+  #       - CMD
+  #       - /usr/bin/nc
+  #       - -z
+  #       - 127.0.0.1
+  #       - "8080"
+  #     interval: 5s
+  #     retries: 10
+  #   volumes:
+  #     - s3:/data
 
-volumes:
-  s3: {}
+# volumes:
+#   s3: {}
