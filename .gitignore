@@ -3,3 +3,8 @@ overlay/backend/services/*/tests/internal_api
 overlay/backend/services/*/tests/devices_api
 overlay/backend/services/*/tests/management_api
 cliff.toml
+*.env*
+*.crt
+*.key
+*.pem
+*.csr

@@ -1,9 +1,0 @@
-tls:
-  stores:
-    default:
-      defaultCertificate:
-        certFile: /etc/traefik/certs/mender.crt
-        keyFile: /etc/traefik/certs/mender.key
-  options:
-    default:
-      minVersion: VersionTLS12
